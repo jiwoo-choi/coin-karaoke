@@ -1,21 +1,23 @@
 import React from "react";
 import socektio from 'socket.io-client'
 import styled from 'styled-components'
-import YoutubeAPIFetch, {YoutubeResult} from './YoutubeDataApi'
+import YoutubeAPIFetch, {YoutubeResult} from '../KaraokeUtils/YoutubeDataApi'
 import { Button , Search , Input, Accordion, Icon, Container} from 'semantic-ui-react'
 import { Header } from 'semantic-ui-react'
 import Collapse from './Arccodian'
-import {KaraokeSenderSession, KaraokeReceiverSession} from './SocketConnector'
+import {KaraokeSenderSession, KaraokeReceiverSession} from '../KaraokeUtils/SocketConnector'
+import { SocketControllable } from "../App";
+import { withRouter, RouteComponentProps } from 'react-router-dom'
 
 const INPUT_CONTAINER = styled.div`
     display:flex;
     margin:20px;
 `
 
-export default class ControlMain extends React.Component<{},{searchResult: YoutubeResult, searchString:string}> {
+class ControlMain extends React.Component<SocketControllable & RouteComponentProps,{searchResult: YoutubeResult, searchString:string}> {
     private karaokeSession? : KaraokeSenderSession;
 
-    constructor(props:{}){
+    constructor(props:SocketControllable & RouteComponentProps){
 
         super(props);
 
@@ -28,7 +30,8 @@ export default class ControlMain extends React.Component<{},{searchResult: Youtu
     }
 
     componentDidMount(){
-        this.karaokeSession = new KaraokeSenderSession('https://97568f1b9300.ngrok.io');
+        this.karaokeSession = new KaraokeSenderSession(this.props.socket);
+        // this.karaokeSession = new KaraokeSenderSession('http://ec2-user@ec2-3-23-61-166.us-east-2.compute.amazonaws.com:3000');
     }
 
 
@@ -37,10 +40,6 @@ export default class ControlMain extends React.Component<{},{searchResult: Youtu
         this.setState({ searchString: search });
     }
 
-    //예약은 거기서 관리해 알겠지?
-    //retry with other keys
-    //debounce
-    //Accordinan.
     render(){
         return(
             <div style={{overflow:'scroll'}}>
@@ -124,3 +123,5 @@ export default class ControlMain extends React.Component<{},{searchResult: Youtu
         )
     }
 }
+
+export default withRouter(ControlMain)

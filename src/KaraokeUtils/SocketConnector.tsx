@@ -19,13 +19,11 @@ export class KaraokeSenderSession implements CoinKaraokeSocketConnectable {
 
     private socket?: SocketIOClient.Socket;
 
-    constructor(url : string) {
-        this.socket = socektio.connect(url);
+    constructor(socket : SocketIOClient.Socket) {
+        this.socket = socket;
     }
 
     addSong (videoId: string,title: string) {
-        //뒤에예약.
-        console.log("hello")
         this.socket?.emit(
             'add-song',
             {
@@ -69,10 +67,13 @@ export class KaraokeSenderSession implements CoinKaraokeSocketConnectable {
 
 export class KaraokeReceiverSession  {
 
+    //subscribe 
+    //reducer처리. 
+    //add처리?
     private socket?: SocketIOClient.Socket;
 
-    constructor(url : string) {
-        this.socket = socektio.connect(url);
+    constructor(socket : SocketIOClient.Socket) {
+        this.socket = socket;
     }
 
     subscribe( 
@@ -82,19 +83,19 @@ export class KaraokeReceiverSession  {
         onCancel: ()=>void,
         ) {
 
-        this.socket?.on('add-song', (data: responseType) => {
+        this.socket?.on('get-add-song', (data: responseType) => {
             onAddsong(data);
         })
 
-        this.socket?.on('priority-add-song', (data: responseType) => {
+        this.socket?.on('get-priority-add-song', (data: responseType) => {
             onPriorityAddSong(data);
         })
 
-        this.socket?.on('play-song', (data: responseType) => {
+        this.socket?.on('get-play-song', (data: responseType) => {
             onPlaySong(data);
         })
-        
-        this.socket?.on('cancel-song', () => {
+
+        this.socket?.on('get-cancel-song', () => {
             onCancel();
         })
 

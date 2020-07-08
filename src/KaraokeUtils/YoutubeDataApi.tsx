@@ -29,18 +29,11 @@ export default function YoutubeAPIFetch(query: string) {
         part:"snippet",
         maxResults:20,
     }
-
     let url = "https://www.googleapis.com/youtube/v3/search?";
-
     for(let [key, value] of Object.entries(optionParams)) {
         url+=key+"="+ value+"&";
     }
     url=url.substr(0, url.length-1);
-
     return fetch(url)
     .then<YoutubeResult>(response => response.json())
 }
-
-
-
-// youtubeDataFetcher
