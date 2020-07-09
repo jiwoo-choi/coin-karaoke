@@ -12,6 +12,7 @@
     "@types/react-dom": "^16.9.8",
     "@types/react-router": "^5.1.8",
     "@types/react-router-dom": "^5.1.5",
+    "@types/socket.io": "^2.1.8",
     "@types/socket.io-client": "^1.4.33",
     "@types/styled-components": "^5.1.1",
     "@types/youtube-player": "^5.5.3",

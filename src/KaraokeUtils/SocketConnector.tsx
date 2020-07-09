@@ -4,11 +4,11 @@ import socektio from 'socket.io-client'
 
 interface CoinKaraokeSocketConnectable {
     // 곡 추가
-    addSong:(videoId:string,title: string)=>void;
+    addSong:(id: string ,payload: responseType)=>void;
     // 우선예약
-    priortyAddSong:(videoId:string,title: string)=>void;
+    priortyAddSong:(id: string ,payload: responseType)=>void;
     // 시작
-    playSong:(videoId:string,title: string)=>void;
+    playSong:(id: string ,payload: responseType)=>void;
     cancelSong:()=>void;
 }
 
@@ -23,36 +23,30 @@ export class KaraokeSenderSession implements CoinKaraokeSocketConnectable {
         this.socket = socket;
     }
 
-    addSong (videoId: string,title: string) {
+    addSong(id: string ,payload: responseType) {
         this.socket?.emit(
             'add-song',
-            {
-                title:title,
-                videoId: videoId
-            }
+            id,
+            payload
         )
     }
 
-    priortyAddSong (videoId: string,title: string) {
+    priortyAddSong (id: string ,payload: responseType) {
         // 우선예약.
         this.socket?.emit(
             'priority-add-song',
-            {
-                title:title,
-                videoId: videoId
-            }
+            id,
+            payload
         )
     }
 
-    playSong (videoId: string, title: string) {
+    playSong (id: string ,payload: responseType) {
         //우선예약 후 스타트.
         //아니면 그냥 예약되어있는거 스타트.
         this.socket?.emit(
             'play-song',
-            {
-                title:title,
-                videoId: videoId
-            }
+            id,
+            payload
         )
     }
 

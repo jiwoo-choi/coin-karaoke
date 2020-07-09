@@ -14,10 +14,10 @@ const INPUT_CONTAINER = styled.div`
     margin:20px;
 `
 
-class ControlMain extends React.Component<SocketControllable & RouteComponentProps,{searchResult: YoutubeResult, searchString:string}> {
+class ControlMain extends React.Component<SocketControllable & RouteComponentProps<{id:string}>,{searchResult: YoutubeResult, searchString:string}> {
     private karaokeSession? : KaraokeSenderSession;
 
-    constructor(props:SocketControllable & RouteComponentProps){
+    constructor(props:SocketControllable & RouteComponentProps<{id:string}>){
 
         super(props);
 
@@ -31,6 +31,7 @@ class ControlMain extends React.Component<SocketControllable & RouteComponentPro
 
     componentDidMount(){
         this.karaokeSession = new KaraokeSenderSession(this.props.socket);
+        this.props.socket.emit('connect-remote', this.props.match.params.id)
         // this.karaokeSession = new KaraokeSenderSession('http://ec2-user@ec2-3-23-61-166.us-east-2.compute.amazonaws.com:3000');
     }
 
@@ -41,6 +42,8 @@ class ControlMain extends React.Component<SocketControllable & RouteComponentPro
     }
 
     render(){
+
+        const id = this.props.match.params.id
         return(
             <div style={{overflow:'scroll'}}>
                 <div>
@@ -61,20 +64,16 @@ class ControlMain extends React.Component<SocketControllable & RouteComponentPro
                         {/* <BUTTON onClick={()=>{ YoutubeAPIFetch(this.state.searchString).then( response => this.setState({ searchResult : response}))}}> 검색하기</BUTTON> */}
                     </INPUT_CONTAINER>
                     
-                    
-
-
                     {/* <Container style={{
                         margin:'20px'
                     }}> */}
 
-                  
                     {
                         
-
-
                         this.state.searchResult.items?.map( (value) => {
                             return (
+
+                                
                                     <Collapse title={value.snippet.title}>
                                         <div
                                                 style= {{
@@ -82,13 +81,13 @@ class ControlMain extends React.Component<SocketControllable & RouteComponentPro
                                                     flexDirection:'row',
                                                     justifyContent:'space-around'
                                             }}>
-                                                <Button onClick={()=>{this.karaokeSession?.playSong(value.id.videoId, value.snippet.title)}} icon>
+                                                <Button onClick={()=>{this.karaokeSession?.playSong(id,{videoId : value.id.videoId, title: value.snippet.title })}} icon>
                                                     <Icon name='play' /> 시작하기 
                                                 </Button>   
-                                                <Button onClick={()=>{this.karaokeSession?.addSong(value.id.videoId, value.snippet.title)}} icon>
+                                                <Button onClick={()=>{this.karaokeSession?.addSong(id,{videoId : value.id.videoId, title: value.snippet.title })}} icon>
                                                     <Icon name='clock outline' /> 예약하기 
                                                 </Button>
-                                                <Button onClick={()=>{this.karaokeSession?.priortyAddSong(value.id.videoId, value.snippet.title)}} icon>
+                                                <Button onClick={()=>{this.karaokeSession?.priortyAddSong(id,{videoId : value.id.videoId, title: value.snippet.title })}} icon>
                                                     1<Icon name='clock outline' /> 우선예약 
                                                 </Button>
                                         </div>

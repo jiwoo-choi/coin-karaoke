@@ -8,7 +8,7 @@ import { QRCode ,ErrorCorrectLevel } from "qrcode-generator-ts/js";
 import { SocketControllable } from '../App';
 import { withRouter, RouteComponentProps } from 'react-router-dom'
 import { Icon, Label, Segment, Button, Header, Divider } from 'semantic-ui-react'
-
+import { roomType, errorType } from '../type';
 //disconnect.
 
 
@@ -34,15 +34,6 @@ interface YoutubeResult {
 }
 
 
-//예약취소는 어디에?
-//예약
-
-// const SEARCH = () => {
-//     return(
-
-//     )
-// }
-
 type responseType = { videoId : string, title: string }
 class Main extends React.Component<SocketControllable & RouteComponentProps<{id:string}>, {queue:responseType[], qrcode: string}>{
 
@@ -62,11 +53,14 @@ class Main extends React.Component<SocketControllable & RouteComponentProps<{id:
     // ---- 플레이어 ---- //
 
     nextSong(player : YouTubePlayer){
-        let nextItem = this.queue.shift();
-        if (nextItem) {
-            player.loadVideoById(nextItem);
-            player.playVideo();
-        }
+        const tempQueue = this.state.queue;
+        let nextItem = tempQueue.shift();
+        this.setState( { queue: tempQueue }, () => {
+            if (nextItem) {
+                player.loadVideoById(nextItem);
+                player.playVideo();
+            }
+        })
     }
 
     play(player : YouTubePlayer){
@@ -84,8 +78,8 @@ class Main extends React.Component<SocketControllable & RouteComponentProps<{id:
 
     // 취소하기
     cancel(player : YouTubePlayer) {
-        // player.loadVideoById('');
         player.stopVideo();
+        player.loadVideoById('');
     }
 
 
@@ -93,11 +87,12 @@ class Main extends React.Component<SocketControllable & RouteComponentProps<{id:
 
     removeSongAt(index: number){
         const slice1 = this.state.queue.slice(0,index)
-        const slice2 = this.state.queue.slice(index,this.state.queue.length)
+        const slice2 = this.state.queue.slice(index+1,this.state.queue.length)
         this.setState({ queue : slice1.concat(slice2)})
     }
 
     addSong(data: responseType){
+        console.log(data);
         const newQueue = this.state.queue;
         newQueue.push(data);
         this.setState({ queue : newQueue})
@@ -106,25 +101,31 @@ class Main extends React.Component<SocketControllable & RouteComponentProps<{id:
     addSongAtFirst(data: responseType) {
         const newQueue = [ data ].concat(this.state.queue)
         this.setState({ queue : newQueue})
-    }
+    } // binding..?
+
 
     componentDidMount(){
 
         this.karaokeSession = new KaraokeReceiverSession(this.props.socket);
 
+        this.props.socket.emit('join-room', {roomId : this.props.match.params.id, roomNumber : 1 } as roomType)
+
+        
         let qrCode = new QRCode();
-        qrCode.setErrorCorrectLevel(ErrorCorrectLevel.M);
-        qrCode.setTypeNumber(4);
-        qrCode.addData("http://localhost:3000/remote/"+this.props.match.params.id);
+        qrCode.setErrorCorrectLevel(ErrorCorrectLevel.H);
+        qrCode.setTypeNumber(10);
+        qrCode.addData("http://react-server-bucket.s3-website.ap-northeast-2.amazonaws.com/remote/"+this.props.match.params.id);
         qrCode.make();
         this.setState({qrcode : qrCode.toDataURL()})
-
 
         this.karaokeSession
         .subscribe(
             data => this.addSong(data),
             data => this.addSongAtFirst(data),
-            data => console.log("play"),
+            data => { 
+                this.addSongAtFirst(data)
+                this.play(this.player)
+            },
             () => console.log("adfadf")
         )
 
@@ -167,7 +168,9 @@ class Main extends React.Component<SocketControllable & RouteComponentProps<{id:
                 <Draggable key={"SONG_"+index}>
                     <Label size={"large"} style={{ marginBottom:'10px'}}>
                         {index+1} .  {element.title}
-                        <Icon name='delete' link onClick={()=>{this.removeSongAt(index)}}/>
+                        <Icon name='delete' link onClick={()=>{ 
+                            this.removeSongAt(index)
+                            }}/>
                     </Label>
                 </Draggable>
             )
@@ -183,7 +186,7 @@ class Main extends React.Component<SocketControllable & RouteComponentProps<{id:
                 <div style={{display:"flex", justifyContent:"center",alignItems:'center',flexDirection:"column"}}>
                     <div id="player" style={{margin:'auto'}}></div>
                     <Button.Group horizontal labeled icon>
-                        <Button icon='play' content='시작하기' onClick={()=>{this.play(this.player)}}/>
+                        <Button icon='play' content='다음 예약곡 시작' onClick={()=>{this.play(this.player)}}/>
                         <Button icon='stop' content='취소' onClick={()=>{this.cancel(this.player)}} />
                     </Button.Group>
                 </div>

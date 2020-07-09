@@ -1,7 +1,7 @@
 const express = require('express')
 const app = express()
 const server = require('http').createServer();
-const portNo = 3001
+const portNo = 3000
 server.listen(portNo, () => {
     console.log("서버 실행!")
 })
@@ -9,7 +9,6 @@ server.listen(portNo, () => {
 
 const socketio = require('socket.io')
 const io = socketio.listen(server)
-
 
 
 let queue = [];
@@ -143,8 +142,8 @@ io.on('connection', (socket) => {
     })
 
     //방들어간경우 
-    socket.on('join-room', (roomNumber) => {
-        addToJoinRoomList(socket, roomNumber);
+    socket.on('join-room', ({roomId, id}) => {
+        addToJoinRoomList(socket, {roomId, id});
     })
 
     //방을 떠난 경우..
@@ -168,19 +167,19 @@ io.on('connection', (socket) => {
     socket.on('add-song', (msg) => {
         //그걸 소켓 id를 구분하여... 그쪽에게만 소켓에게만 보내준다.
         //받은 소켓 아이디를 기반으로 구분시켜준다..
-        io.sockets.in('room' + msg.roomId).emit('get-add-song');
+        io.sockets.in('room' + msg.roomId).clients.emit('get-add-song', msg);
     })
     
     socket.on('priority-add-song', (msg) => {
-        io.sockets.in('room', msg.roomId).emit('get-priority-add-song')
+        io.sockets.in('room', msg.roomId).emit('get-priority-add-song', msg)
     })
 
     socket.on('play-song', (msg) => {
-        io.sockets.in('room', msg.roomId).emit('get-play-song')
+        io.sockets.in('room', msg.roomId).emit('get-play-song', msg)
     })
 
     socket.on('cancel-song', (msg) => {
-        io.sockets.in('room', msg.roomId).emit('get-cancel-song')
+        io.sockets.in('room', msg.roomId).emit('get-cancel-song', msg)
     })
 
 })
